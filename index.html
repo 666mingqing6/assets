@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proxy Everything · EdgeOne</title>
+<meta name="description" content="基于腾讯云 EdgeOne 边缘函数的全站反向代理">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2f3a;
+    --text: #e6e8eb;
+    --muted: #9aa3af;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #e3e6ea;
+      --text: #1a1d23;
+      --muted: #5f6b7a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .card {
+    width: 100%;
+    max-width: 620px;
+    padding: 32px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: -0.01em; }
+  .sub { margin: 0 0 24px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+  .row { display: flex; gap: 10px; }
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  button {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--accent-hover); }
+  .hint { margin-top: 20px; font-size: 12px; color: var(--muted); line-height: 1.8; }
+  code {
+    padding: 2px 6px;
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    word-break: break-all;
+  }
+  .err { margin-top: 12px; font-size: 13px; color: #f87171; display: none; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <h1>Proxy Everything</h1>
+    <p class="sub">基于腾讯云 EdgeOne 边缘函数的全站反向代理。输入目标地址，资源经边缘节点转发。</p>
+
+    <form id="form">
+      <label for="target">目标地址</label>
+      <div class="row">
+        <input id="target" type="text" placeholder="https://example.com" autocomplete="off" spellcheck="false" required>
+        <button type="submit">打开</button>
+      </div>
+      <div class="err" id="err"></div>
+    </form>
+
+    <p class="hint">
+      直接访问格式：<code>/https://example.com/path</code><br>
+      兼容 Cloudflare 版旧链接（同样支持未编码形式）。
+    </p>
+  </main>
+
+<script>
+  const form = document.getElementById('form');
+  const input = document.getElementById('target');
+  const err = document.getElementById('err');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let target = input.value.trim();
+    if (!target) return;
+
+    if (!/^https?:\/\//i.test(target)) target = 'https://' + target;
+
+    let url;
+    try {
+      url = new URL(target);
+    } catch {
+      err.textContent = '地址格式不正确';
+      err.style.display = 'block';
+      return;
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      err.textContent = '仅支持 http / https 协议';
+      err.style.display = 'block';
+      return;
+    }
+    err.style.display = 'none';
+    window.location.href = '/' + encodeURI(url.toString());
+  });
+</script>
+</body>
+</html>
